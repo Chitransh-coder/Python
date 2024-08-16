@@ -26,7 +26,7 @@ try:
     P_repo = git.Repo(path='d:/Projects/Python')
 
     # TensorFlow repo
-    TF_repo = git.Repo(path='d:/Projects/Tensorflow')
+    TF_repo = git.Repo(path='d:/Projects/Tensorflow/Study')
 
     # Fassal repo
     F_repo = git.Repo(path='d:/Projects/Earth Engine App')
