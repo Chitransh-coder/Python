@@ -4,6 +4,8 @@ import datetime
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import winreg as reg
+import os
 import sys
 
 today = datetime.date.today() # Get the current date
@@ -26,7 +28,7 @@ try:
     P_repo = git.Repo(path='d:/Projects/Python')
 
     # TensorFlow repo
-    TF_repo = git.Repo(path='d:/Projects/Tensorflow/Study')
+    TF_repo = git.Repo(path='d:/Projects/Tensorflow')
 
     # Fassal repo
     F_repo = git.Repo(path='d:/Projects/Earth Engine App')
@@ -34,11 +36,14 @@ try:
     # MAUI repo
     M_repo = git.Repo(path='d:/Projects/C#/MAUI')
 
-    # MS Learn Web App repo
-    W_repo = git.Repo(path='d:/Projects/REST API/MS Learn Web APP')
+    # DSA repo
+    D_repo = git.Repo(path='d:/Projects/C++/Self/DSA')
+
+    # Plant Leaf Classification repo
+    Pl_repo = git.Repo(path="d:/Projects/Plant Leaf Classification")
 
 except FileNotFoundError:
-    print("Please check the path of the repositories.")
+    print("Please update the path of the repositories.")
 
 
 # Difference
@@ -79,45 +84,11 @@ if M_repo.is_dirty():
                             capture_output=True)
     repo_with_changes['MAUI'] = M_repo.working_dir
 
-if W_repo.is_dirty():
-    out7 = subprocess.run(['git', 'add', '-A'],
-                            cwd=W_repo.working_dir,
+if D_repo.is_dirty():
+    out8 = subprocess.run(['git', 'add', '-A'],
+                            cwd=D_repo.working_dir,
                             capture_output=True)
-    repo_with_changes['MS Learn Web APP'] = W_repo.working_dir
-
-def show_changes():
-    listbox = tk.Tk()
-    listbox.title("List of Changes")
-    # Show a list of repositories with changes
-    mess = tk.Label(listbox, text="Repositories with changes:")
-    mess.pack()
-
-    dropdown = ttk.Combobox(listbox, values=list(repo_with_changes.keys()))
-    dropdown.pack(pady=15)
-
-    def on_click():
-        repo = dropdown.get()
-        path = repo_with_changes[repo]
-        listbox.destroy()
-        try:
-            subprocess.run(['code', path], shell=True)
-        except FileNotFoundError:
-            print("VSCode is not installed or not found in the system path.")
-
-    button = ttk.Button(listbox, text="Open", command=on_click)
-    button.pack(pady=25)
-
-    # Center the window on the screen
-    window_width = 400
-    window_height = 200
-    screen_width = listbox.winfo_screenwidth()
-    screen_height = listbox.winfo_screenheight()
-    center_x = int((screen_width - window_width) / 2)
-    center_y = int((screen_height - window_height) / 2)
-    listbox.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-
-    # Start the GUI event loop
-    listbox.mainloop()
+    repo_with_changes['DSA'] = D_repo.working_dir
 
 def create_popup():
 
@@ -128,19 +99,32 @@ def create_popup():
     style = ttk.Style()
     style.configure('TButton', font=('Segoe UI', 10), borderwidth='4')
 
+    # Create labels and buttons
+    label = tk.Label(popup, text="Changes found! Open VSCode?")
+    label.pack()
+
+    # Show a list of repositories with changes
+    mess = tk.Label(popup, text="Repositories with changes:")
+    mess.pack(pady=10)
+
+    dropdown = ttk.Combobox(popup, values=list(repo_with_changes.keys()))
+    dropdown.pack(pady=15)
+
+    def on_click():
+        repo = dropdown.get()
+        path = repo_with_changes[repo]
+        popup.destroy()
+        try:
+            subprocess.run(['code', path], shell=True)
+        except FileNotFoundError:
+            print("VSCode is not installed or not found in the system path.")
 
     def on_yes_click():
-        popup.destroy()
-        show_changes()
+        on_click()
 
     def on_no_click():
         popup.destroy()
         sys.exit()
-
-
-    # Create labels and buttons
-    label = tk.Label(popup, text="Changes found! Open VSCode?")
-    label.pack()
 
     button_yes = ttk.Button(popup, text="Yes", command=on_yes_click, style='TButton')
     button_yes.pack(side="left", padx=(20, 10), pady=20)
@@ -161,4 +145,7 @@ def create_popup():
     popup.mainloop()
 
 if repo_with_changes:
-    create_popup()
+    try:
+        create_popup()
+    finally:
+        sys.exit(0)
