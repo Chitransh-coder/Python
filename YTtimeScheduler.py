@@ -4,7 +4,7 @@ import time
 import tkinter
 from tkinter import ttk
 
-def alert():
+def alert(process: psutil.Process):
     """
     Creates a pop up notifying user about the exhaustion of limit
     """
@@ -13,11 +13,12 @@ def alert():
     root.wm_attributes('-topmost', 1)
     style = ttk.Style()
     style.configure('TButton', font=('Segoe UI', 10), borderwidth='4')
-    def on_click():
+    def on_click(process : psutil.Process):
         root.destroy()
+        process.terminate()
     label = tkinter.Label(root, text="Your daily Youtube Quota has been reached!")
     label.pack()
-    button = tkinter.Button(root, text="OK", command=on_click)
+    button = tkinter.Button(root, text="OK", command=on_click(process))
     button.pack()
     window_width = 400
     window_height = 200
@@ -27,6 +28,7 @@ def alert():
     center_y = int((screen_height - window_height) / 2)
     root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
     root.mainloop()
+
 
 def countdown():
     """
@@ -53,8 +55,9 @@ while True:
                 if not countdown_initiated:
                     countdown_initiated = True
                     if countdown() == False:
-                        alert()
-                        process.kill()
+                        alert(process)
                         break
+                else:
+                    alert(process)
             break
     time.sleep(10)  # Wait for 10 seconds before checking again
