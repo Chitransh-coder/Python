@@ -4,7 +4,7 @@ import time
 import tkinter
 from tkinter import ttk
 
-def alert(process: psutil.Process):
+def alert():
     """
     Creates a pop up notifying user about the exhaustion of limit
     """
@@ -13,12 +13,14 @@ def alert(process: psutil.Process):
     root.wm_attributes('-topmost', 1)
     style = ttk.Style()
     style.configure('TButton', font=('Segoe UI', 10), borderwidth='4')
-    def on_click(process : psutil.Process):
+    def on_click():
         root.destroy()
-        process.terminate()
+        for process in psutil.process_iter(['pid', 'name']):
+            if process.info['name'] == 'msedge.exe':
+                process.kill()
     label = tkinter.Label(root, text="Your daily Youtube Quota has been reached!")
     label.pack()
-    button = tkinter.Button(root, text="OK", command=on_click(process))
+    button = tkinter.Button(root, text="OK", command=on_click)
     button.pack()
     window_width = 400
     window_height = 200
@@ -46,18 +48,23 @@ countdown_initiated = False
 
 while True:
     for process in psutil.process_iter(['pid', 'name']):
+        print("for loop")
         if process.info['name'] == 'msedge.exe': # Checking if browser is open
-            window = pygetwindow.getActiveWindowTitle()
-            time.sleep(2)
-            print(window)
-            if "YouTube" in window:
-                print("YouTube is open")
-                if not countdown_initiated:
-                    countdown_initiated = True
-                    if countdown() == False:
-                        alert(process)
-                        break
-                else:
-                    alert(process)
-            break
-    time.sleep(10)  # Wait for 10 seconds before checking again
+            print("Browser is open")
+            try:
+                window = pygetwindow.getWindowsWithTitle('YouTube')[0]
+                if window.isActive:
+                    print("YouTube is open")
+                    if not countdown_initiated:
+                        countdown_initiated = True
+                        if countdown() == False:
+                            alert()
+                            break
+                    else:
+                        print("Countdown already initiated")
+                        alert()
+                    break
+            except IndexError:
+                continue
+    time.sleep(10)
+    print("sleep")  # Wait for 10 seconds before checking again
