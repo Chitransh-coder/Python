@@ -4,6 +4,8 @@ import time
 import tkinter
 from tkinter import ttk
 
+youtube_quota = 3600 # 1 hour
+
 def alert():
     """
     Creates a pop up notifying user about the exhaustion of limit
@@ -12,16 +14,19 @@ def alert():
     root.title("Time's Up!")
     root.wm_attributes('-topmost', 1)
     style = ttk.Style()
-    style.configure('TButton', font=('Segoe UI', 10), borderwidth='4')
+    style.theme_use('clam')
+
     def on_click():
         root.destroy()
         for process in psutil.process_iter(['pid', 'name']):
             if process.info['name'] == 'msedge.exe':
                 process.kill()
-    label = tkinter.Label(root, text="Your daily Youtube Quota has been reached!")
-    label.pack()
-    button = tkinter.Button(root, text="OK", command=on_click)
-    button.pack()
+
+    label = ttk.Label(root, text="Your daily Youtube Quota has been reached!")
+    label.pack(pady=20)
+    button = ttk.Button(root, text="OK", command=on_click)
+    button.pack(pady=10)
+
     window_width = 400
     window_height = 200
     screen_width = root.winfo_screenwidth()
@@ -31,40 +36,48 @@ def alert():
     root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
     root.mainloop()
 
-
-def countdown():
+def countdown(seconds):
     """
     Countdown timer for Youtube Quota
     """
-    seconds = 5
-    while True:
+    while seconds > 0:
         time.sleep(1)
         seconds -= 1
-        if seconds == 0:
-            break
+        with open('C:/YouTubeTime.bin', 'wb') as file:
+            file.write(seconds.to_bytes(4, 'big'))
     return False
 
 countdown_initiated = False
 
+try:
+    with open('C:/YouTubeTime.bin', 'rb') as file:
+        youtube_quota = int.from_bytes(file.read(), 'big')
+except FileNotFoundError:
+    with open('C:/YouTubeTime.bin', 'wb') as file:
+        file.write(youtube_quota.to_bytes(4, 'big'))
+
 while True:
+    msedge_open = False
+    youtube_open = False
+
     for process in psutil.process_iter(['pid', 'name']):
-        print("for loop")
-        if process.info['name'] == 'msedge.exe': # Checking if browser is open
-            print("Browser is open")
+        if process.info['name'] == 'msedge.exe':  # Checking if browser is open
+            msedge_open = True
             try:
                 window = pygetwindow.getWindowsWithTitle('YouTube')[0]
                 if window.isActive:
-                    print("YouTube is open")
-                    if not countdown_initiated:
-                        countdown_initiated = True
-                        if countdown() == False:
-                            alert()
-                            break
-                    else:
-                        print("Countdown already initiated")
-                        alert()
+                    youtube_open = True
                     break
             except IndexError:
                 continue
+
+    if msedge_open and youtube_open:
+        if not countdown_initiated:
+            countdown_initiated = True
+        if countdown(youtube_quota) == False:
+            alert()
+            break
+    else:
+        countdown_initiated = False
+
     time.sleep(10)
-    print("sleep")  # Wait for 10 seconds before checking again
