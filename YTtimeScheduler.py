@@ -43,17 +43,17 @@ def countdown(seconds):
     while seconds > 0:
         time.sleep(1)
         seconds -= 1
-        with open('C:/YouTubeTime.bin', 'wb') as file:
+        with open('D:/YouTubeTime.bin', 'wb') as file:
             file.write(seconds.to_bytes(4, 'big'))
     return False
 
 countdown_initiated = False
 
 try:
-    with open('C:/YouTubeTime.bin', 'rb') as file:
+    with open('D:/YouTubeTime.bin', 'rb') as file:
         youtube_quota = int.from_bytes(file.read(), 'big')
 except FileNotFoundError:
-    with open('C:/YouTubeTime.bin', 'wb') as file:
+    with open('D:/YouTubeTime.bin', 'wb') as file:
         file.write(youtube_quota.to_bytes(4, 'big'))
 
 while True:
