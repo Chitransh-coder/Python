@@ -1,10 +1,19 @@
 import pygetwindow
 import psutil
 import time
+import datetime
 import tkinter
 from tkinter import ttk
 
-youtube_quota = 3600 # 1 hour
+today = datetime.date.today()  # Get the current date
+working_days = {0, 1, 2, 3, 4}  # Monday to Friday
+free_days = {5, 6}  # Saturday and Sunday
+if today.weekday() in working_days:
+    youtube_quota = 3600  # 1 hour in seconds
+elif today.weekday() in free_days:
+    youtube_quota = 7200 # 2 hours in seconds
+else:
+    youtube_quota = 3600
 
 def alert():
     """
@@ -21,6 +30,15 @@ def alert():
         for process in psutil.process_iter(['pid', 'name']):
             if process.info['name'] == 'msedge.exe':
                 process.kill()
+    def on_close():
+        root.destroy()
+        for process in psutil.process_iter(['pid', 'name']):
+            if process.info['name'] == 'msedge.exe':
+                process.kill()
+    root.protocol("WM_DELETE_WINDOW", on_close)
+    style.configure('TButton', font=('Segoe UI', 10), borderwidth='4')
+    root.resizable(False, False)
+    root.attributes('-toolwindow', 1)
 
     label = ttk.Label(root, text="Your daily Youtube Quota has been reached!")
     label.pack(pady=20)
@@ -43,34 +61,24 @@ def countdown(seconds):
     while seconds > 0:
         time.sleep(1)
         seconds -= 1
-        with open('D:/YouTubeTime.bin', 'wb') as file:
-            file.write(seconds.to_bytes(4, 'big'))
     return False
 
 countdown_initiated = False
 
-try:
-    with open('D:/YouTubeTime.bin', 'rb') as file:
-        youtube_quota = int.from_bytes(file.read(), 'big')
-except FileNotFoundError:
-    with open('D:/YouTubeTime.bin', 'wb') as file:
-        file.write(youtube_quota.to_bytes(4, 'big'))
-
 while True:
     msedge_open = False
     youtube_open = False
-
+    print("Checking for browser and YouTube...")
     for process in psutil.process_iter(['pid', 'name']):
         if process.info['name'] == 'msedge.exe':  # Checking if browser is open
             msedge_open = True
             try:
                 window = pygetwindow.getWindowsWithTitle('YouTube')[0]
-                if window.isActive:
+                if 'YouTube' in window.title:
                     youtube_open = True
-                    break
             except IndexError:
                 continue
-
+    print(f"msedge_open: {msedge_open}, youtube_open: {youtube_open}")
     if msedge_open and youtube_open:
         if not countdown_initiated:
             countdown_initiated = True
@@ -80,4 +88,4 @@ while True:
     else:
         countdown_initiated = False
 
-    time.sleep(10)
+    time.sleep(1)
